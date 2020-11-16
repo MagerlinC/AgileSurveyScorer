@@ -14,7 +14,7 @@ def main():
         name, being, doing, max_being, max_doing = get_company_scores(file)
         being_percent = round(being / max_being * 100, 2)
         doing_percent = round(doing / max_doing * 100, 2)
-        print(f"{name} scored - Being: {being} ({being_percent}%), Doing: {doing} ({doing_percent}%). Disparity: {abs(being - doing)}")
+        print(f"{name} scored - Being: {being} ({being_percent}%), Doing: {doing} ({doing_percent}%). Disparity: {abs(being_percent - doing_percent)} percentage points.")
     
 
 def get_company_scores(file_path):
