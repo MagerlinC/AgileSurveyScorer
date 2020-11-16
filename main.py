@@ -1,28 +1,31 @@
 import csv
 # Indexes in the CSV file which are answers to questions about BEING agile
-being_question_indexes = [8, 9, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
+being_question_indexes = [9, 10, 12, 13, 14, 16, 17, 18, 19, 21, 22, 24, 25, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37]
 # Indexes in the CSV file which are answers to questions about DOING agile
-doing_question_indexes = [10, 14, 19, 22, 25]
+doing_question_indexes = [11, 15, 20, 23, 26]
 # Indexes in the CSV file where the answers are asked inverted (eg. DONT you instead of DO you)
-inverted_question_indexes = [13, 24, 27, 33, 36]
+inverted_question_indexes = [14, 25, 28, 34, 37]
 
 
 def main():
     file_path = "./answers/testanswers.csv"
     company_doing = 0
     company_being = 0
+    company_name = None
     with open(file_path, newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
         num_answers = 0
         for (index, row) in enumerate(reader):
             num_answers += 1
             if(index > 0): # first row is headers
+                if(company_name == None):
+                    company_name = row[0] # First col is company name
                 doing_score, being_score = get_answer_score(row)
                 company_doing += doing_score
                 company_being += being_score
     max_doing = num_answers * len(doing_question_indexes)
     max_being = num_answers * len(being_question_indexes) * 2 # 2 pts for answering "STRONGLY agree"
-    print(f"Company scored - Doing: {company_doing}/{max_doing}, Being: {company_being}/{max_being}. Disparity: {abs(company_being - company_doing)}")
+    print(f"{company_name} scored - Doing: {company_doing}/{max_doing}, Being: {company_being}/{max_being}. Disparity: {abs(company_being - company_doing)}")
 
 
 def get_answer_score(answer_data):
