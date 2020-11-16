@@ -12,7 +12,9 @@ def main():
     file_paths = ["./answers/testanswers.csv"]
     for file in file_paths:
         name, being, doing, max_being, max_doing = get_company_scores(file)
-        print(f"{name} scored - Being: {being}/{max_being}, Doing: {doing}/{max_doing}. Disparity: {abs(being - doing)}")
+        being_percent = round(being / max_being * 100, 2)
+        doing_percent = round(doing / max_doing * 100, 2)
+        print(f"{name} scored - Being: {being} ({being_percent}%), Doing: {doing} ({doing_percent}%). Disparity: {abs(being - doing)}")
     
 
 def get_company_scores(file_path):
