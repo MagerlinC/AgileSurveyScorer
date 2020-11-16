@@ -1,6 +1,8 @@
 import csv
-being_question_indexes = [8, 9]
-doing_question_indexes = [10]
+# Indexes in the CSV file which are answers to questions about BEING agile
+being_question_indexes = [8, 9, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
+# Indexes in the CSV file which are answers to questions about DOING agile
+doing_question_indexes = [10, 14, 19, 22, 25]
 
 
 def main():
@@ -28,14 +30,17 @@ def get_answer_score(answer_data):
     return (doing_score, being_score)
 
 def likert_to_int(likert_val):
-    conversion_dict = {
-        "strongly agree": 2,
-        "agree": 1,
-        "neutral": 0,
-        "disagree": -1,
-        "strongly disagree": -2
-    }
-    return conversion_dict[likert_val.lower()]
+    if(likert_val):
+        conversion_dict = {
+            "strongly agree": 2,
+            "agree": 1,
+            "neutral": 0,
+            "disagree": -1,
+            "strongly disagree": -2
+        }
+        return conversion_dict[likert_val.lower()]
+    else:
+        return 0
 
 
 if __name__ == "__main__":
