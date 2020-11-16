@@ -31,7 +31,7 @@ def get_company_scores(file_path):
                 company_doing += doing_score
                 company_being += being_score
     max_doing = num_answers * len(doing_question_indexes)
-    max_being = num_answers * len(being_question_indexes) * 2 # 2 pts for answering "STRONGLY agree"
+    max_being = num_answers * len(being_question_indexes) * 2 # 2 pts for answering "STRONGLY agree" to everything is max
     return (company_name, company_being, company_doing, max_being, max_doing)
 
 def get_answer_score(answer_data):
