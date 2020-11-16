@@ -9,6 +9,11 @@ inverted_question_indexes = [14, 25, 28, 34, 37]
 
 def main():
     file_path = "./answers/testanswers.csv"
+    name, being, doing, max_being, max_doing = get_company_scores(file_path)
+    print(f"{name} scored - Being: {being}/{max_being}, Doing: {doing}/{max_doing}. Disparity: {abs(being - doing)}")
+    
+
+def get_company_scores(file_path):
     company_doing = 0
     company_being = 0
     company_name = None
@@ -25,8 +30,7 @@ def main():
                 company_being += being_score
     max_doing = num_answers * len(doing_question_indexes)
     max_being = num_answers * len(being_question_indexes) * 2 # 2 pts for answering "STRONGLY agree"
-    print(f"{company_name} scored - Doing: {company_doing}/{max_doing}, Being: {company_being}/{max_being}. Disparity: {abs(company_being - company_doing)}")
-
+    return (company_name, company_being, company_doing, max_being, max_doing)
 
 def get_answer_score(answer_data):
     doing_score = 0
