@@ -8,9 +8,11 @@ inverted_question_indexes = [14, 25, 28, 34, 37]
 
 
 def main():
-    file_path = "./answers/testanswers.csv"
-    name, being, doing, max_being, max_doing = get_company_scores(file_path)
-    print(f"{name} scored - Being: {being}/{max_being}, Doing: {doing}/{max_doing}. Disparity: {abs(being - doing)}")
+    # TODO, do this for every file in the answers folder
+    file_paths = ["./answers/testanswers.csv"]
+    for file in file_paths:
+        name, being, doing, max_being, max_doing = get_company_scores(file)
+        print(f"{name} scored - Being: {being}/{max_being}, Doing: {doing}/{max_doing}. Disparity: {abs(being - doing)}")
     
 
 def get_company_scores(file_path):
