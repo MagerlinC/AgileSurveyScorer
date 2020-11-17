@@ -53,7 +53,7 @@ def show_boxplots(company_data):
     ax.set_ylabel('Percentage Scored') 
     ax.set_ylim([0,100])
 
-    labels = list(map(lambda company_answer: company_answer.get("name"), company_data))
+    labels = list(map(lambda company_answer: company_answer.get("name") + ": Being", company_data))
     plt.margins(0.2)
 
     # Convert "being" score answers to percentage of max possible per answer
