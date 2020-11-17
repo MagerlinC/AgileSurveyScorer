@@ -21,15 +21,14 @@ def main():
     directory = "./answers/"
     for filename in os.listdir(directory):
         if filename.endswith(".csv"):
-            print(os.path.join(directory, filename))
-            name, being, doing, max_being, max_doing, being_answers, doing_answers = get_company_scores(directory + filename)
+            being, doing, max_being, max_doing, being_answers, doing_answers = get_company_scores(directory + filename)
             being_percent = round(being / max_being * 100, 2)
             doing_percent = round(doing / max_doing * 100, 2)
-            print(f"{name} scored - Being: {being} ({being_percent}%), Doing: {doing} ({doing_percent}%). Disparity: {abs(being_percent - doing_percent)} percentage points.")
+            #print(f"{filename} scored - Being: {being} ({being_percent}%), Doing: {doing} ({doing_percent}%). Disparity: {abs(being_percent - doing_percent)} percentage points.")
             boxplot_data.append({
-                "company_name": name,
-                "being_score": being,
-                "doing_score": doing,
+                "name": filename.replace(".csv", ""),
+                "being_score": being_percent,
+                "doing_score": doing_percent,
                 "max_being_score": max_being,
                 "max_doing_score": max_doing,
                 "being_answers": being_answers,
@@ -54,11 +53,12 @@ def show_boxplots(company_data):
     ax.set_ylabel('Percentage Scored') 
     ax.set_ylim([0,100])
 
-    labels = list(map(lambda company_answer: company_answer.get("company_name"), company_data))
+    labels = list(map(lambda company_answer: company_answer.get("name"), company_data))
     plt.margins(0.2)
 
     # Convert "being" score answers to percentage of max possible per answer
     being_percentage_answers = list(map(lambda answer: list(map(lambda inner_answer: val_to_percentage(inner_answer, SINGLE_ANSWER_MAX_BEING), answer)), being_answers))
+    print(being_percentage_answers)
     ax.boxplot(being_percentage_answers, labels=labels) 
     #savefig('boxplots.jpg', bbox_inches='tight', dpi=500)
     plt.show()
@@ -66,7 +66,6 @@ def show_boxplots(company_data):
 def get_company_scores(file_path):
     company_doing = 0
     company_being = 0
-    company_name = None
     doing_answers = []
     being_answers = []
     with open(file_path, newline='') as csvfile:
@@ -75,8 +74,6 @@ def get_company_scores(file_path):
         for (index, row) in enumerate(reader):
             num_answers += 1
             if(index > 0): # first row is headers
-                if(company_name == None):
-                    company_name = row[0] # First col is company name
                 doing_score, being_score = get_answer_score(row)
                 company_doing += doing_score
                 company_being += being_score
@@ -84,7 +81,7 @@ def get_company_scores(file_path):
                 being_answers.append(being_score)
     max_doing = num_answers * len(doing_question_indexes)
     max_being = num_answers * len(being_question_indexes) * 2 # 2 pts for answering "STRONGLY agree" to everything is max
-    return (company_name, company_being, company_doing, max_being, max_doing, being_answers, doing_answers)
+    return (company_being, company_doing, max_being, max_doing, being_answers, doing_answers)
 
 def get_answer_score(answer_data):
     doing_score = 0
