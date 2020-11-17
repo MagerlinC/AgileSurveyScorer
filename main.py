@@ -1,4 +1,5 @@
 import csv
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter, MaxNLocator
@@ -16,23 +17,26 @@ SINGLE_ANSWER_MAX_DOING = len(doing_question_indexes) # Equivalent of answering 
 
 
 def main():
-    # TODO, do this for every file in the answers folder
-    file_paths = ["./answers/testanswers.csv"]
     boxplot_data = []
-    for file in file_paths:
-        name, being, doing, max_being, max_doing, being_answers, doing_answers = get_company_scores(file)
-        being_percent = round(being / max_being * 100, 2)
-        doing_percent = round(doing / max_doing * 100, 2)
-        print(f"{name} scored - Being: {being} ({being_percent}%), Doing: {doing} ({doing_percent}%). Disparity: {abs(being_percent - doing_percent)} percentage points.")
-        boxplot_data.append({
-            "company_name": name,
-            "being_score": being,
-            "doing_score": doing,
-            "max_being_score": max_being,
-            "max_doing_score": max_doing,
-            "being_answers": being_answers,
-            "doing_answers": doing_answers
-        })
+    directory = "./answers/"
+    for filename in os.listdir(directory):
+        if filename.endswith(".csv"):
+            print(os.path.join(directory, filename))
+            name, being, doing, max_being, max_doing, being_answers, doing_answers = get_company_scores(directory + filename)
+            being_percent = round(being / max_being * 100, 2)
+            doing_percent = round(doing / max_doing * 100, 2)
+            print(f"{name} scored - Being: {being} ({being_percent}%), Doing: {doing} ({doing_percent}%). Disparity: {abs(being_percent - doing_percent)} percentage points.")
+            boxplot_data.append({
+                "company_name": name,
+                "being_score": being,
+                "doing_score": doing,
+                "max_being_score": max_being,
+                "max_doing_score": max_doing,
+                "being_answers": being_answers,
+                "doing_answers": doing_answers
+            })
+        else:
+            continue
     show_boxplots(boxplot_data)
 
 def val_to_percentage(val, max):
@@ -44,8 +48,6 @@ def show_boxplots(company_data):
     for company_answer in company_data:
         doing_answers.append(company_answer.get("doing_answers"))
         being_answers.append(company_answer.get("being_answers"))
-    max_being = 2 * len(being_answers) # Max points for being answers is "STRONGLY AGREE" (2) per.
-    max_doing = len(doing_answers) # Max points for doing answers is answering "yes" (1) to all doing questions.
     # Multiple box plots on one Axes
     fig, ax = plt.subplots()
     fig.suptitle('Company Being/Doing Scores', fontsize=14, fontweight='bold')
@@ -55,9 +57,9 @@ def show_boxplots(company_data):
     labels = list(map(lambda company_answer: company_answer.get("company_name"), company_data))
     plt.margins(0.2)
 
-    # Convert "being" score answers to percentage of max possible
+    # Convert "being" score answers to percentage of max possible per answer
     being_percentage_answers = list(map(lambda answer: list(map(lambda inner_answer: val_to_percentage(inner_answer, SINGLE_ANSWER_MAX_BEING), answer)), being_answers))
-    ax.boxplot(being_percentage_answers, labels=labels)
+    ax.boxplot(being_percentage_answers, labels=labels) 
     #savefig('boxplots.jpg', bbox_inches='tight', dpi=500)
     plt.show()
     
