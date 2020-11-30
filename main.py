@@ -13,14 +13,16 @@ inverted_question_indexes = [14, 25, 28, 34, 37]
 # The maximum being score a single answer can give
 SINGLE_ANSWER_MAX_BEING = len(being_question_indexes) * 2 # Equivalent of answering "Strongly Agree" to every being question
 # The maximum doing score a single answer can give
-SINGLE_ANSWER_MAX_DOING = len(doing_question_indexes) # Equivalent of answering "Yes" to every doing question
+SINGLE_ANSWER_MAX_DOING = len(doing_question_indexes) + 1 # Equivalent of answering "Yes" to every doing question, +1 from YES EVERY
 
 
 def main():
     boxplot_data = []
     directory = "./answers/"
-    for filename in os.listdir(directory):
-        if filename.endswith(".csv"):
+    sorted_files = os.listdir(directory)
+    sorted_files.sort()
+    for filename in sorted_files:
+        if filename.endswith(".csv") and "test" not in filename:
             being, doing, max_being, max_doing, being_answers, doing_answers = get_company_scores(directory + filename)
             being_percent = round(being / max_being * 100, 2)
             doing_percent = round(doing / max_doing * 100, 2)
@@ -41,6 +43,13 @@ def main():
 def val_to_percentage(val, max):
     return round(val / max * 100, 4)
 
+def combine_lists_alternating(list1, list2):
+    output = []
+    for (index, elem) in enumerate(list1):
+        output.append(elem)
+        output.append(list2[index])
+    return output
+
 def show_boxplots(company_data):
     doing_answers = []
     being_answers = []
@@ -50,16 +59,17 @@ def show_boxplots(company_data):
     # Multiple box plots on one Axes
     fig, ax = plt.subplots()
     fig.suptitle('Company Being/Doing Scores', fontsize=14, fontweight='bold')
-    ax.set_ylabel('Percentage Scored') 
-    ax.set_ylim([0,100])
+    ax.set_ylabel('Percentage Scored')
+    ax.set_ylim([0,105])
 
-    labels = list(map(lambda company_answer: company_answer.get("name") + ": Being", company_data))
+    being_labels = list(map(lambda company_answer: company_answer.get("name") + ": Be", company_data))
+    doing_labels = list(map(lambda company_answer: company_answer.get("name") + ": Do", company_data))
     plt.margins(0.2)
 
     # Convert "being" score answers to percentage of max possible per answer
     being_percentage_answers = list(map(lambda answer: list(map(lambda inner_answer: val_to_percentage(inner_answer, SINGLE_ANSWER_MAX_BEING), answer)), being_answers))
-    print(being_percentage_answers)
-    ax.boxplot(being_percentage_answers, labels=labels) 
+    doing_percentage_answers = list(map(lambda answer: list(map(lambda inner_answer: val_to_percentage(inner_answer, SINGLE_ANSWER_MAX_DOING), answer)), doing_answers))
+    ax.boxplot(combine_lists_alternating(being_percentage_answers, doing_percentage_answers), labels=combine_lists_alternating(being_labels, doing_labels)) 
     #savefig('boxplots.jpg', bbox_inches='tight', dpi=500)
     plt.show()
     
@@ -89,6 +99,7 @@ def get_answer_score(answer_data):
     for(index, answer) in enumerate(answer_data):
         if(index in doing_question_indexes):
             doing_score += 1 if "yes" in answer.lower() else 0
+            doing_score += 1 if "every" in answer.lower() else 0
         elif(index in being_question_indexes):
             being_score += (-1 * likert_to_int(answer)) if index in inverted_question_indexes else likert_to_int(answer)
     return (doing_score, being_score)
