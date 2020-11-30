@@ -24,15 +24,11 @@ def main():
     for filename in sorted_files:
         if filename.endswith(".csv") and "test" not in filename:
             being, doing, max_being, max_doing, being_answers, doing_answers = get_company_scores(directory + filename)
-            being_percent = round(being / max_being * 100, 2)
-            doing_percent = round(doing / max_doing * 100, 2)
-            #print(f"{filename} scored - Being: {being} ({being_percent}%), Doing: {doing} ({doing_percent}%). Disparity: {abs(being_percent - doing_percent)} percentage points.")
+            being_avg = round(being / len(being_answers), 2)
+            doing_avg = round(doing / len(doing_answers), 2)
+            print(f"{filename} - Being Score (avg): {being_avg}, Doing Score (avg): {doing_avg}")
             boxplot_data.append({
                 "name": filename.replace(".csv", ""),
-                "being_score": being_percent,
-                "doing_score": doing_percent,
-                "max_being_score": max_being,
-                "max_doing_score": max_doing,
                 "being_answers": being_answers,
                 "doing_answers": doing_answers
             })
@@ -58,9 +54,9 @@ def show_boxplots(company_data):
         being_answers.append(company_answer.get("being_answers"))
     # Multiple box plots on one Axes
     fig, ax = plt.subplots()
-    fig.suptitle('Company Being/Doing Scores', fontsize=14, fontweight='bold')
-    ax.set_ylabel('Percentage Scored')
-    ax.set_ylim([0,105])
+    fig.suptitle('Team "Being" Agile Scores', fontsize=14, fontweight='bold')
+    ax.set_ylabel('Being Score')
+    ax.set_ylim([-SINGLE_ANSWER_MAX_BEING - 1, SINGLE_ANSWER_MAX_BEING + 1])
 
     being_labels = list(map(lambda company_answer: company_answer.get("name") + ": Be", company_data))
     doing_labels = list(map(lambda company_answer: company_answer.get("name") + ": Do", company_data))
@@ -69,7 +65,7 @@ def show_boxplots(company_data):
     # Convert "being" score answers to percentage of max possible per answer
     being_percentage_answers = list(map(lambda answer: list(map(lambda inner_answer: val_to_percentage(inner_answer, SINGLE_ANSWER_MAX_BEING), answer)), being_answers))
     doing_percentage_answers = list(map(lambda answer: list(map(lambda inner_answer: val_to_percentage(inner_answer, SINGLE_ANSWER_MAX_DOING), answer)), doing_answers))
-    ax.boxplot(combine_lists_alternating(being_percentage_answers, doing_percentage_answers), labels=combine_lists_alternating(being_labels, doing_labels)) 
+    ax.boxplot(being_answers, labels=being_labels) 
     #savefig('boxplots.jpg', bbox_inches='tight', dpi=500)
     plt.show()
     
@@ -89,8 +85,8 @@ def get_company_scores(file_path):
                 company_being += being_score
                 doing_answers.append(doing_score)
                 being_answers.append(being_score)
-    max_doing = num_answers * len(doing_question_indexes)
-    max_being = num_answers * len(being_question_indexes) * 2 # 2 pts for answering "STRONGLY agree" to everything is max
+    max_doing = num_answers * SINGLE_ANSWER_MAX_DOING
+    max_being = num_answers * SINGLE_ANSWER_MAX_BEING
     return (company_being, company_doing, max_being, max_doing, being_answers, doing_answers)
 
 def get_answer_score(answer_data):
