@@ -22,19 +22,56 @@ def main():
     sorted_files = os.listdir(directory)
     sorted_files.sort()
     for filename in sorted_files:
+        if("aggr" in filename):
+            calc_being_correlations(directory + filename)
         if filename.endswith(".csv") and "test" not in filename:
-            being, doing, max_being, max_doing, being_answers, doing_answers = get_company_scores(directory + filename)
-            being_avg = round(being / len(being_answers), 2)
-            doing_avg = round(doing / len(doing_answers), 2)
-            print(f"{filename} - Being Score (avg): {being_avg}, Doing Score (avg): {doing_avg}")
-            boxplot_data.append({
-                "name": filename.replace(".csv", ""),
-                "being_answers": being_answers,
-                "doing_answers": doing_answers
-            })
+            with open(directory + filename, newline='') as csvfile:
+                reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+                being, doing, being_answers, doing_answers = get_company_scores(reader)
+                # print(f"{filename} - Avg. Being: {being_avg}/{SINGLE_ANSWER_MAX_BEING}, Avg. Doing: {doing_avg}/{SINGLE_ANSWER_MAX_DOING}")
+                boxplot_data.append({
+                    "name": filename.replace(".csv", ""),
+                    "being_answers": being_answers,
+                    "doing_answers": doing_answers
+                })
         else:
             continue
-    show_boxplots(boxplot_data)
+    #show_boxplots(boxplot_data)
+
+
+def calc_being_correlations(file_path):
+    answer_data = []
+    # Map of question nr to possible answers for that question, eg. 3:["Less than 1 Year", "1-2 years"]
+    questions = {}
+    # For each question find unique answer options
+    with open(file_path, newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        for (index, row) in enumerate(reader):
+            if(index > 0):
+                answer_data.append(row) # Build list of all answers
+            if(index == 0): # First row is headers
+                for (index, val) in enumerate(row): # Every question
+                    questions.setdefault(index, []) # Store question number, empty list in map
+            else:
+                for (index, val) in enumerate(row):
+                    cur_opts = questions.get(index)
+                    if(not val in cur_opts): # Add the answer if this answer isn't already in the list of possible answers
+                        cur_opts.append(val)
+    # For every unique question:option...
+    for (question_nr, question_opts) in questions.items():
+        #if(question_nr > 1): # Question 0 and 1 are company and timestamp, we don't care
+            for opt in question_opts:
+                # Get a filtered data set of answers that have this question:opt combination
+                filtered_data = list(filter(lambda row: row[question_nr] == opt, answer_data))
+                # Get being score for the filtered data set
+                being_score, doing_score, being_answers, doing_answers = get_company_scores(filtered_data, False)
+                # Create a unique key for that question and answer combination
+                combination_key = str(question_nr) + ":" + opt
+                # Calculate average being for that combination
+                being_avg = round(sum(being_answers) / len(being_answers), 2)
+                print(combination_key, being_avg)
+
+   
 
 def val_to_percentage(val, max):
     return round(val / max * 100, 4)
@@ -59,35 +96,35 @@ def show_boxplots(company_data):
     ax.set_ylim([-SINGLE_ANSWER_MAX_BEING - 1, SINGLE_ANSWER_MAX_BEING + 1])
 
     being_labels = list(map(lambda company_answer: company_answer.get("name") + ": Be", company_data))
-    doing_labels = list(map(lambda company_answer: company_answer.get("name") + ": Do", company_data))
+    #doing_labels = list(map(lambda company_answer: company_answer.get("name") + ": Do", company_data))
     plt.margins(0.2)
 
     # Convert "being" score answers to percentage of max possible per answer
-    being_percentage_answers = list(map(lambda answer: list(map(lambda inner_answer: val_to_percentage(inner_answer, SINGLE_ANSWER_MAX_BEING), answer)), being_answers))
-    doing_percentage_answers = list(map(lambda answer: list(map(lambda inner_answer: val_to_percentage(inner_answer, SINGLE_ANSWER_MAX_DOING), answer)), doing_answers))
+    #being_percentage_answers = list(map(lambda answer: list(map(lambda inner_answer: val_to_percentage(inner_answer, SINGLE_ANSWER_MAX_BEING), answer)), being_answers))
+    #doing_percentage_answers = list(map(lambda answer: list(map(lambda inner_answer: val_to_percentage(inner_answer, SINGLE_ANSWER_MAX_DOING), answer)), doing_answers))
     ax.boxplot(being_answers, labels=being_labels) 
     #savefig('boxplots.jpg', bbox_inches='tight', dpi=500)
     plt.show()
+
     
-def get_company_scores(file_path):
+    
+def get_company_scores(iterable, has_headers = True):
     company_doing = 0
     company_being = 0
     doing_answers = []
     being_answers = []
-    with open(file_path, newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        num_answers = 0
-        for (index, row) in enumerate(reader):
-            num_answers += 1
-            if(index > 0): # first row is headers
-                doing_score, being_score = get_answer_score(row)
-                company_doing += doing_score
-                company_being += being_score
-                doing_answers.append(doing_score)
-                being_answers.append(being_score)
-    max_doing = num_answers * SINGLE_ANSWER_MAX_DOING
-    max_being = num_answers * SINGLE_ANSWER_MAX_BEING
-    return (company_being, company_doing, max_being, max_doing, being_answers, doing_answers)
+    num_answers = 0
+    for (index, row) in enumerate(iterable):
+        num_answers += 1
+        if(not has_headers or index > 0): # first row is headers
+            doing_score, being_score = get_answer_score(row)
+            company_doing += doing_score
+            company_being += being_score
+            doing_answers.append(doing_score)
+            being_answers.append(being_score)
+    #max_doing = num_answers * SINGLE_ANSWER_MAX_DOING
+    #max_being = num_answers * SINGLE_ANSWER_MAX_BEING
+    return (company_being, company_doing, being_answers, doing_answers)
 
 def get_answer_score(answer_data):
     doing_score = 0
