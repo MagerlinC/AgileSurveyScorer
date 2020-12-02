@@ -1,4 +1,5 @@
 import csv
+import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -40,6 +41,7 @@ def main():
 
 
 def calc_being_correlations(file_path):
+    original_stdout = sys.stdout # Save a reference to the original standard output
     answer_data = []
     # Map of question nr to possible answers for that question, eg. 3:["Less than 1 Year", "1-2 years"]
     questions = {}
@@ -57,6 +59,8 @@ def calc_being_correlations(file_path):
                     cur_opts = questions.get(index)
                     if(not val in cur_opts): # Add the answer if this answer isn't already in the list of possible answers
                         cur_opts.append(val)
+    # Remove output from previous runs
+    os.remove("output.csv")
     # For every unique question:option...
     for (question_nr, question_opts) in questions.items():
         if(question_nr > 1): # Question 0 and 1 are company and timestamp, we don't care
@@ -70,7 +74,12 @@ def calc_being_correlations(file_path):
                 combination_key = str(question_nr) + ":" + opt
                 # Calculate average being for that combination
                 being_avg = round(sum(being_answers) / len(being_answers), 2)
-                print(combination_key, being_avg, num_answer_matches)
+                # Print to file
+                with open('output.csv', 'a') as f:
+                    sys.stdout = f # Change the standard output to the file we created.
+                    print("\"" + combination_key + "\"" + "," + str(being_avg) + "," + str(num_answer_matches))
+                sys.stdout = original_stdout # Reset the standard output to its original value
+               
 
    
 
