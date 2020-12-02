@@ -59,17 +59,18 @@ def calc_being_correlations(file_path):
                         cur_opts.append(val)
     # For every unique question:option...
     for (question_nr, question_opts) in questions.items():
-        #if(question_nr > 1): # Question 0 and 1 are company and timestamp, we don't care
+        if(question_nr > 1): # Question 0 and 1 are company and timestamp, we don't care
             for opt in question_opts:
                 # Get a filtered data set of answers that have this question:opt combination
                 filtered_data = list(filter(lambda row: row[question_nr] == opt, answer_data))
+                num_answer_matches = len(filtered_data)
                 # Get being score for the filtered data set
                 being_score, doing_score, being_answers, doing_answers = get_company_scores(filtered_data, False)
                 # Create a unique key for that question and answer combination
                 combination_key = str(question_nr) + ":" + opt
                 # Calculate average being for that combination
                 being_avg = round(sum(being_answers) / len(being_answers), 2)
-                print(combination_key, being_avg)
+                print(combination_key, being_avg, num_answer_matches)
 
    
 
