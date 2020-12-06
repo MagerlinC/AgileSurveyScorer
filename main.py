@@ -22,10 +22,9 @@ def main():
     directory = "./answers/"
     sorted_files = os.listdir(directory)
     sorted_files.sort()
+    print("Getting answer scores")
     for filename in sorted_files:
-        if("aggr" in filename):
-            calc_being_correlations(directory + filename)
-        if filename.endswith(".csv") and "test" not in filename:
+        if filename.endswith(".csv"):
             with open(directory + filename, newline='') as csvfile:
                 reader = csv.reader(csvfile, delimiter=',', quotechar='"')
                 being, doing, being_answers, doing_answers = get_company_scores(reader)
@@ -128,6 +127,7 @@ def get_company_scores(iterable, has_headers = True):
         num_answers += 1
         if(not has_headers or index > 0): # first row is headers
             doing_score, being_score = get_answer_score(row)
+            print(being_score)
             company_doing += doing_score
             company_being += being_score
             doing_answers.append(doing_score)
@@ -144,7 +144,8 @@ def get_answer_score(answer_data):
             doing_score += 1 if "yes" in answer.lower() else 0
             doing_score += 1 if "every" in answer.lower() else 0
         elif(index in being_question_indexes):
-            being_score += (-1 * likert_to_int(answer)) if index in inverted_question_indexes else likert_to_int(answer)
+            to_add = (-1 * likert_to_int(answer)) if index in inverted_question_indexes else likert_to_int(answer)
+            being_score += to_add
     return (doing_score, being_score)
 
 def likert_to_int(likert_val):
