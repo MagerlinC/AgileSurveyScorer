@@ -1,6 +1,7 @@
 import csv
 import sys
 import os
+import functools 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter, MaxNLocator
@@ -16,7 +17,20 @@ SINGLE_ANSWER_MAX_BEING = len(being_question_indexes) * 2 # Equivalent of answer
 # The maximum doing score a single answer can give
 SINGLE_ANSWER_MAX_DOING = len(doing_question_indexes) + 1 # Equivalent of answering "Yes" to every doing question, +1 from YES EVERY
 
-
+AGILE_PRINCIPLES = [
+    "Our highest priority is to satisfy the customer through early and continuous delivery of valuable software.",
+    "Welcome changing requirements, even late in development. Agile processes harness change for the customer's competitive advantage.",
+    "Deliver working software frequently, from a couple of weeks to a couple of months, with a preference to the shorter timescale.",
+    "Business people and developers must work together daily throughout the project.",
+    "Build projects around motivated individuals. Give them the environment and support they need, and trust them to get the job done.",
+    "The most efficient and effective method of conveying information to and within a development team is face-to-face conversation.",
+    "Working software is the primary measure of progress.",
+    "Agile processes promote sustainable development. The sponsors, developers, and users should be able to maintain a constant pace indefinitely.",
+    "Continuous attention to technical excellence and good design enhances agility.",
+    "Simplicity--the art of maximizing the amount of work not done--is essential.",
+    "The best architectures, requirements, and designs emerge from self-organizing teams.",
+    "At regular intervals, the team reflects on how to become more effective, then tunes and adjusts its behavior accordingly."
+]
 PRINCIPLE_QUESTION_MAP = {1: [9, 10], 2: [12, 13]}
 
 
@@ -26,6 +40,7 @@ def main():
     sorted_files = os.listdir(directory)
     sorted_files.sort()
     input_data = []
+    questions = []
     for filename in sorted_files:
         if filename.endswith(".csv") and "aggr" in filename:
             with open(directory + filename, newline='') as csvfile:
@@ -34,6 +49,8 @@ def main():
                 for (index, row) in enumerate(reader):
                     if(index > 0):
                         company_data.append(row)
+                    else:
+                        questions = (row)
                 input_data += company_data
                 being, doing, being_answers, doing_answers = get_company_scores(company_data, False)
                 # print(f"{filename} - Avg. Being: {being_avg}/{SINGLE_ANSWER_MAX_BEING}, Avg. Doing: {doing_avg}/{SINGLE_ANSWER_MAX_DOING}")
@@ -50,17 +67,19 @@ def main():
 
 def get_principle_breakdown(input_data):
     principle_score_list = []
-
     for (principle, principle_question_indexes) in PRINCIPLE_QUESTION_MAP.items():
         principle_averages = []
         for question_index in principle_question_indexes:
             principle_averages.append(get_col_average(question_index, input_data))
-        principle_avg_score = sum(principle_averages) / len(principle_averages)
+        principle_total_score = sum(principle_averages)
+        principle_avg_score = principle_total_score / len(principle_averages)
         principle_score_list.append(principle_avg_score)
     # Print results
     print("*** Score per Principle ***")
-    for (index, principle_score) in enumerate(principle_score_list):
-        print(index + 1, principle_score)
+    for (index, score) in enumerate(principle_score_list):
+        print("Nr. | Score | Principle |")
+        print(f"  {index + 1} | {round(score, 3)} | {AGILE_PRINCIPLES[index]}")
+
 
 
 def get_col_average(col_indx, input_data):
