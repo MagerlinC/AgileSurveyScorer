@@ -17,18 +17,25 @@ SINGLE_ANSWER_MAX_BEING = len(being_question_indexes) * 2 # Equivalent of answer
 SINGLE_ANSWER_MAX_DOING = len(doing_question_indexes) + 1 # Equivalent of answering "Yes" to every doing question, +1 from YES EVERY
 
 
+PRINCIPLE_QUESTION_MAP = {1: [9, 10], 2: [12, 13]}
+
+
 def main():
     boxplot_data = []
     directory = "./answers/"
     sorted_files = os.listdir(directory)
     sorted_files.sort()
+    input_data = []
     for filename in sorted_files:
-        if("aggr" in filename):
-            calc_being_correlations(directory + filename)
-        if filename.endswith(".csv") and "test" not in filename:
+        if filename.endswith(".csv") and "aggr" in filename:
             with open(directory + filename, newline='') as csvfile:
                 reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-                being, doing, being_answers, doing_answers = get_company_scores(reader)
+                company_data = []
+                for (index, row) in enumerate(reader):
+                    if(index > 0):
+                        company_data.append(row)
+                input_data += company_data
+                being, doing, being_answers, doing_answers = get_company_scores(company_data, False)
                 # print(f"{filename} - Avg. Being: {being_avg}/{SINGLE_ANSWER_MAX_BEING}, Avg. Doing: {doing_avg}/{SINGLE_ANSWER_MAX_DOING}")
                 boxplot_data.append({
                     "name": filename.replace(".csv", ""),
@@ -38,6 +45,30 @@ def main():
         else:
             continue
     #show_boxplots(boxplot_data)
+    get_principle_breakdown(input_data)
+
+
+def get_principle_breakdown(input_data):
+    principle_score_list = []
+
+    for (principle, principle_question_indexes) in PRINCIPLE_QUESTION_MAP.items():
+        principle_averages = []
+        for question_index in principle_question_indexes:
+            principle_averages.append(get_col_average(question_index, input_data))
+        principle_avg_score = sum(principle_averages) / len(principle_averages)
+        principle_score_list.append(principle_avg_score)
+    # Print results
+    print("*** Score per Principle ***")
+    for (index, principle_score) in enumerate(principle_score_list):
+        print(index + 1, principle_score)
+
+
+def get_col_average(col_indx, input_data):
+    col_averages = []
+    for (index, row) in enumerate(input_data):
+        if(index > 0): # Ignore questions in row 0
+            col_averages.append(likert_to_int(row[col_indx]))
+    return sum(col_averages) / len(col_averages)
 
 
 def calc_being_correlations(file_path):
